@@ -5,36 +5,28 @@ output: pdf_document
 date: "2023-02-01"
 ---
 
-```{r setup}
+```{r setup, echo=FALSE}
 library(tidyverse)
 library(openintro)
 data('arbuthnot', package='openintro')
 ```
-
 ## Exercise 1
 ### What command would you use to extract just the counts of girls baptized? Try it!
-
-
 ```{r exercise_1}
 arbuthnot$girls
 ```
-
 ## Exercise 2
 ### Is there an apparent trend in the number of girls baptized over the years? How would you describe it? (To ensure that your lab report is comprehensive, be sure to include the code needed to make the plot as well as your written interpretation.)
-
-
 ```{r exercise_2}
 ggplot(data = arbuthnot, aes(x = year, y = girls)) + 
-  geom_line()
+  geom_line() +
+  geom_smooth(method=lm)
 ```
-
-There isn't an overarching trend here, just seems to tell the story regarding either birth rates or baptism demand.
-
 It seems like the number of girls baptised was somewhat consistent starting in 1629 before crashing starting in 1640. This would suggest maybe there was a slower birth rate, and this lasted until around 1660 before ticking upwards in a consistent upwards trend until hitting a sort of plateau in the mid 1690s. There were some outlier years (the mid 1660s had a pretty huge crash), but otherwise baptisms were in the 7000s starting in the early 1680s, minus one huge outlier in the early 1700s.
 
+Overall, it seems like the number of girls getting baptised has almost doubled from 1629-1700s. If we take the lowest values and compare them to the highest, then they did double.
 ## Exercise 3
 ### Now, generate a plot of the proportion of boys born over time. What do you see?
-
 ```{r new_variable}
 arbuthnot <- arbuthnot %>%
   mutate(total = boys + girls)
@@ -44,4 +36,39 @@ ggplot(data = arbuthnot, aes(x = year, y = boy_ratio)) +
   geom_line() +
   geom_smooth(method=lm)
 ```
-I've added a trend line here to show that the proportion of boys being born over time is slowly declining. We see it had an average of ~0.52 to start, but it's been slowly moving towards ~0.515 as time has passed -- it's still above 50% so more boys are being born than girls, but it's almost decreased by 0.01 over the ~80 years for this dataset.
+I've added a trend line here to show that the proportion of boys being born over time is slowly declining. We see it had an average of ~0.52 to start, but it's been slowly moving towards ~0.515 as time has passed -- it's still above 50% so more boys are being born than girls, but it's almost decreased by 0.01 over the ~80 years for this data set.
+```{r present, echo=FALSE}
+data('present', package='openintro')
+```
+## Exercise 4
+### What years are included in this data set? What are the dimensions of the data frame? What are the variable (column) names?
+```{r exercise_4}
+dim(present)
+glimpse(present)
+present %>%
+  summarize(min = min(year), max = max(year))
+```
+This data set includes years from 1940 to 2002. The dataframe has 3 columns and the variable names are `year`, `boys`, and `girls`.
+## Exercise 5
+### How do these counts compare to Arbuthnot’s? Are they of a similar magnitude?
+These counts are much larger compared to Arbuthnot's -- just as a basic observation, Arbuthnot's had their boys and girls counts have 4 digits ranging from 3-7k, Present's numbers are in the millions for both genders.
+## Exercise 6
+### Make a plot that displays the proportion of boys born over time. What do you see? Does Arbuthnot’s observation about boys being born in greater proportion than girls hold up in the U.S.? Include the plot in your response.
+
+```{r exercise_6}
+present <- present %>%
+  mutate(total = boys + girls)
+present <- present %>%
+  mutate(boy_ratio = boys / total)
+ggplot(data = present, aes(x = year, y = boy_ratio)) + 
+  geom_line() +
+  geom_smooth(method=lm)
+```
+Yes, it does look like boys are being born in greater proportion for the US as well, albeit at a slightly smaller difference. We also see this proportion declining, meaning girls are likely being born at an increasing rate, although this is still above 50% so boys are more popular nonetheless.
+## Exercise 7
+### In what year did we see the most total number of births in the U.S.?
+```{r exercise_7}
+present %>%
+  arrange(desc(total))
+```
+1961 had 4,268,326 births.
