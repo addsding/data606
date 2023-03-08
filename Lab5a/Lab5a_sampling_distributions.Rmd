@@ -51,7 +51,7 @@ Based on this sample, it looks like 13 of the 50 don't believe that the work sci
 #### Would you expect the sample proportion to match the sample proportion of another student’s sample? Why, or why not? If the answer is no, would you expect the proportions to be somewhat different or very different? Ask a student team to confirm your answer.
 
 
-No, I don't expect my sample to match the one of another student's. The only way we could guarantee the same sample here is if we chose the same seed. The proportions though would be somewhat different, likely not very different. This is due to both our *random* samples likely being representative of the population, albeit not perfect. 
+No, I don't expect my sample to match the one of another student's. The only way we could guarantee the same sample here is if we chose the same seed. The proportions though would be somewhat different, likely not very different. This is due to both our *random* samples likely being representative of the population, albeit not perfect. The person I asked, Nick Climaco, had 6/50 so this confirms ours aren't the same.
 
 ### Exercise 3
 
