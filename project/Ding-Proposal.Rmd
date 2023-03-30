@@ -1,0 +1,82 @@
+---
+title: "DATA 606 Data Project Proposal"
+author: "Alice Ding"
+---
+
+### Data Preparation
+
+```{r setup, echo=TRUE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(psych)
+
+# load data
+streams <- read.csv("https://raw.githubusercontent.com/addsding/data606/main/project/Streams.csv")
+features <- read.csv("https://raw.githubusercontent.com/addsding/data606/main/project/Features.csv")
+
+# append streams data onto features for ease of access
+full_data <- merge(x = features, y = streams, by.x = "name", by.y = "Song")
+head(full_data)
+```
+
+
+### Research question 
+
+Is there a correlation between tempo and streams (play count) for the top 100 most-played songs on Spotify?
+
+### Cases 
+
+**What are the cases, and how many are there?**
+
+The cases are each songs; the data is comprised of the top 100 most-streamed songs on Spotify.
+
+### Data collection 
+
+**Describe the method of data collection.**
+
+This data was retrieved from [Kaggle](https://www.kaggle.com/datasets/amaanansari09/most-streamed-songs-all-time) by Amaan Ansari. They retrieved it from Spotify's API specifically.
+
+### Type of study 
+
+Observational.
+
+
+
+### Data Source 
+
+**If you collected the data, state self-collected. If not, provide a citation/link.**
+
+https://www.kaggle.com/datasets/amaanansari09/most-streamed-songs-all-time
+
+### Dependent Variable
+
+**What is the response variable? Is it quantitative or qualitative?**
+
+The response variable would be streams (plays) and it is quantitative. 
+
+### Independent Variable(s)
+
+The explanatory variable would be tempo and it is quantitative. This is the description taken from Spotify:
+
+```The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.```
+
+
+### Relevant summary statistics 
+
+**Provide summary statistics for each the variables. Also include appropriate visualizations related to your research question (e.g. scatter plot, boxplots, etc). This step requires the use of R, hence a code chunk is provided below. Insert more code chunks as needed.**
+
+```{r}
+describe(full_data$Streams..Billions.)
+```
+
+
+```{r}
+describe(full_data$tempo)
+```
+```{r}
+ggplot(full_data, aes(x=Streams..Billions.)) + geom_histogram()
+```
+
+```{r}
+ggplot(full_data, aes(x=tempo)) + geom_histogram()
+```
