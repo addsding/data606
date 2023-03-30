@@ -1,6 +1,9 @@
 ---
 title: "DATA 606 Data Project Proposal"
 author: "Alice Ding"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ### Data Preparation
@@ -11,30 +14,27 @@ library(ggplot2)
 library(psych)
 
 # load data
-streams <- read.csv("https://raw.githubusercontent.com/addsding/data606/main/project/Streams.csv")
-features <- read.csv("https://raw.githubusercontent.com/addsding/data606/main/project/Features.csv")
+full_data <- read.csv("https://raw.githubusercontent.com/addsding/data606/main/project/Spotify-2000.csv")
 
-# append streams data onto features for ease of access
-full_data <- merge(x = features, y = streams, by.x = "name", by.y = "Song")
 head(full_data)
 ```
 
 
 ### Research question 
 
-Is there a correlation between tempo and streams (play count) for the top 100 most-played songs on Spotify?
+Is there a correlation between tempo (BPM) and popularity tracks on Spotify?
 
 ### Cases 
 
 **What are the cases, and how many are there?**
 
-The cases are each songs; the data is comprised of the top 100 most-streamed songs on Spotify.
+The cases are each songs; the data is comprised of the top 2000 top tracks on Spotify released from 1956 to 2019.
 
 ### Data collection 
 
 **Describe the method of data collection.**
 
-This data was retrieved from [Kaggle](https://www.kaggle.com/datasets/amaanansari09/most-streamed-songs-all-time) by Amaan Ansari. They retrieved it from Spotify's API specifically.
+This data was retrieved from [Kaggle](https://www.kaggle.com/datasets/iamsumat/spotify-top-2000s-mega-dataset) by Sumat Singh. They retrieved it from Spotify's API specifically.
 
 ### Type of study 
 
@@ -46,17 +46,19 @@ Observational.
 
 **If you collected the data, state self-collected. If not, provide a citation/link.**
 
-https://www.kaggle.com/datasets/amaanansari09/most-streamed-songs-all-time
+https://www.kaggle.com/datasets/iamsumat/spotify-top-2000s-mega-dataset
 
 ### Dependent Variable
 
 **What is the response variable? Is it quantitative or qualitative?**
 
-The response variable would be streams (plays) and it is quantitative. 
+The response variable would be popularity and it is quantitative. This is the description taken from Spotify:
+
+```The popularity of the track. The value will be between 0 and 100, with 100 being the most popular. The popularity of a track is a value between 0 and 100, with 100 being the most popular. The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are. Generally speaking, songs that are being played a lot now will have a higher popularity than songs that were played a lot in the past. Duplicate tracks (e.g. the same track from a single and an album) are rated independently. Artist and album popularity is derived mathematically from track popularity. Note: the popularity value may lag actual popularity by a few days: the value is not updated in real time.```
 
 ### Independent Variable(s)
 
-The explanatory variable would be tempo and it is quantitative. This is the description taken from Spotify:
+The explanatory variable would be tempo (BPM) and it is quantitative. This is the description taken from Spotify:
 
 ```The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.```
 
@@ -66,17 +68,18 @@ The explanatory variable would be tempo and it is quantitative. This is the desc
 **Provide summary statistics for each the variables. Also include appropriate visualizations related to your research question (e.g. scatter plot, boxplots, etc). This step requires the use of R, hence a code chunk is provided below. Insert more code chunks as needed.**
 
 ```{r}
-describe(full_data$Streams..Billions.)
+describe(full_data$Popularity)
 ```
 
 
 ```{r}
-describe(full_data$tempo)
-```
-```{r}
-ggplot(full_data, aes(x=Streams..Billions.)) + geom_histogram()
+describe(full_data$Beats.Per.Minute..BPM.)
 ```
 
 ```{r}
-ggplot(full_data, aes(x=tempo)) + geom_histogram()
+ggplot(full_data, aes(x=Popularity)) + geom_histogram()
+```
+
+```{r}
+ggplot(full_data, aes(x=Beats.Per.Minute..BPM.)) + geom_histogram()
 ```
