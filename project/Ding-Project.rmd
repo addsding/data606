@@ -1,0 +1,383 @@
+---
+title: "DATA 606 Data Project"
+author: "Alice Ding"
+output: pdf_document
+---
+
+
+```{r echo=FALSE}
+library(dplyr)
+library(ggplot2)
+data <- read.csv('https://raw.githubusercontent.com/addsding/data606/main/project/Spotify-2000.csv')
+```
+
+
+### Part 1 - Introduction
+
+Music is an integral part of society and is present in so many of our lives -- it is hard to go an entire day without hearing at least part of a song, whether from our own devices (computer, phone, etc.) or just from walking down the street or going into a coffee shop. We are constantly surrounded by music, melodies, and songs.
+
+We all know what music we personally enjoy, but is there a technical or specific reason as to why certain songs top the charts? Are there specific factors of each track that constantly contribute to why we like certain songs more than others? Using certain factors and information about each song, is there then a way to even engineer a track into being "popular" or predict what songs will top the charts?
+
+Using Spotify's API data for the top 2,000 songs from 1956 to 2019, this project will try to find whether there is a relationship between the various variables that Spotify has documented for each of their songs and whether or not the song is popular.
+
+### Part 2 - Data
+
+The data pulled from Spotify's API holds the following fields:
+
+- Index: ID
+- Title: Name of the Track
+- Artist: Name of the Artist*
+- Top Genre: Genre of the Track
+- Year: Release Year of the track
+- Beats per Minute(BPM): The tempo of the song*
+- Energy: The energy of a song - the higher the value, the more energetic the song*
+- Danceability: The higher the value, the easier it is to dance to this song*
+- Loudness: The higher the value, the louder the song*
+- Valence: The higher the value, the more positive mood for the song*
+- Length: The duration of the song*
+- Acousticness: The higher the value the more acoustic the song is*
+- Speechiness: The higher the value the more spoken words the song contains*
+- Popularity: The higher the value the more popular the song is*
+
+The fields with stars are all ones that will used for this project and the last field, `popularity`, is the value we're trying to predict.
+
+### Part 3 - Exploratory data analysis
+
+We'll begin with a bit of clean-up.
+
+```{r clean}
+df <- data |> select(
+  Artist,
+  Beats.Per.Minute..BPM., 
+  Energy, 
+  Danceability, 
+  Loudness..dB., 
+  Valence, 
+  Length..Duration., 
+  Acousticness, 
+  Speechiness, 
+  Popularity
+  )
+
+df <- df |> 
+  rename("artist" = "Artist"
+         , "bpm" = "Beats.Per.Minute..BPM."
+         , "energy" = "Energy"
+         , "danceability" = "Danceability"
+         , "loudness" = "Loudness..dB."
+         , "valence" = "Valence"
+         , "duration" = "Length..Duration."
+         , "acousticness" = "Acousticness"
+         , "speechiness" = "Speechiness"
+         , "popularity" = "Popularity"
+         )
+
+df$duration<- gsub(",", '', df$duration)
+
+df$duration <- as.numeric(df$duration)
+
+summary(df)
+```
+
+#### Distributions
+
+Let's start by looking at the top artists.
+
+```{r artist}
+artist_counts <- df |> 
+  group_by(artist) |>
+  summarise(count = n(),
+            .groups = 'drop') |>
+  arrange(desc(count))
+
+head(artist_counts, 10)
+```
+
+Not surprising that Queen and The Beatles are top of this list -- these artists dominated the late 1900s.
+
+Now, we'll take a look at the numerical columns and view the distribution of each.
+
+```{r bpm-distribution}
+ggplot(df, aes(x = bpm)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("BPM Distribution")
+```
+
+BPM seems relatively normal -- there's a clear peak at around 120 and a few more outliners at around 170 with a small tail, but other than that, it's more normal than I'd expect actually.
+
+```{r energy-distribution}
+ggplot(df, aes(x = energy)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Energy Distribution")
+```
+
+Energy seems to be skewed slightly towards the left, indicating the songs here are higher on the energy scale rather than not.
+
+
+```{r danceability-distribution}
+ggplot(df, aes(x = danceability)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Danceability Distribution")
+```
+
+This distribution is surprisingly very normal as well -- not too skewed and has a very clear peak at around 55.
+
+```{r loudness-distribution}
+ggplot(df, aes(x = loudness)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Loudness Distribution")
+```
+
+There seems to be a left skewness associated with `loudness` here, signalling perhaps that higher dB songs are more prominent here..
+
+```{r valence-distribution}
+ggplot(df, aes(x = valence)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Valence Distribution")
+```
+
+The distribution here is consistent here and isn't much of a bell-shape.
+
+```{r length-distribution}
+ggplot(df, aes(x = duration)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Duration Distribution")
+```
+
+This seems to be right skewed which makes sense -- a song can be abnormally long, but it can't be short in the same way as 0 is the lowest value for duration.
+
+```{r acousticness-distribution}
+ggplot(df, aes(x = acousticness)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Acousticness Distribution")
+```
+
+This isn't normal at all in distribution.
+
+```{r speeechiness-distribution}
+ggplot(df, aes(x = speechiness)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Speechiness Distribution")
+```
+
+Similar to `acousticness`, this isn't normal at all in distribution -- you could argue it's very much right skewed though more than the chart above.
+
+```{r popularity-distribution}
+ggplot(df, aes(x = popularity)) +
+  geom_histogram() +
+  theme_classic() +
+  ggtitle("Popularity Distribution")
+```
+
+There is a slight left skew here and given this dataset is the top tracks over the years, it makes sense that they would be higher on the popularity scale.
+
+#### Relationships
+
+```{r numeric-relationships, fig.height=8}
+library(GGally)
+ggpairs(df[, c(2:10)])
+```
+
+Looks like every field but `bpm` correlates with `popularity` and a lot of these fields seem correlated with each other; this makes sense as for example, I'd imagine a song high in energy is also relatively easy to dance to.
+
+### Part 4 - Inference
+
+#### Binomial Regression
+
+##### Defining the Target
+
+When deciding on a model, I think it actually makes more sense to take the `popularity` field and translate it into a binary -- the songs greater than 50 are popular (1) and the ones lower than or equal to 50 are not (0). Let's see what happens if we do that.
+
+```{r binary}
+df <- df |>
+  mutate(
+    popularity_b = ifelse(popularity > 50, 1, 0)
+    )
+
+popularity_counts <- df |>
+  group_by(popularity_b) |>
+  summarise(count = n(),
+            pct = 100 * n() / nrow(df),
+            .groups = 'drop') |>
+  arrange(desc(count))
+
+popularity_counts
+```
+
+It looks like using this methodology, 73% of the dataset is popular and 27% aren't.
+
+##### Modeling
+
+Let's begin the modeling process by splitting our data into a training and testing set; we'll be doing a 70/30 split.
+
+```{r split}
+set.seed(1234)
+train.rows <- sample(nrow(df), nrow(df) * .7)
+df_train <- df[train.rows,]
+df_test <- df[-train.rows,]
+
+popularity_prediction <- table(df_train$popularity_b) %>% prop.table
+popularity_prediction
+```
+
+Note that with this split, if we were just to predict that if a song was popular, we would be correct 74% of the time.
+
+Now, let's create a binomial model using all variables and look at the coefficient values and statistical significance for everything other than `artist`.
+
+```{r binomial}
+binomial_regression <- glm(popularity_b ~ bpm + energy + danceability 
+                           + loudness + valence + duration 
+                           + acousticness + speechiness 
+                           + artist, data = df_train
+                           , family = binomial(link = 'logit'))
+
+summary(binomial_regression)$coefficients[c("bpm"
+                                            , "energy"
+                                            , "danceability"
+                                            , "loudness"
+                                            , "valence"
+                                            , "duration"
+                                            , "acousticness"
+                                            , "speechiness")
+                                          ,]
+```
+
+Only two of these look like statistically significant predictors as `duration` and `speechiness` are both below 0.05 and 0.10 respectively. Nonetheless, we can see that `danceability`, `loudness`, `valence`, and `acousticness` contribute to popularity while `energy`, `duration`, and `speechiness` have a negative impact (all things held constant).
+
+Would this model look better if we removed the fields that are more than 0.50 in z-score? This means running a model without `bpm`, `energy`, and `loudness`.
+
+```{r binomial-2}
+binomial_regression_2 <- glm(popularity_b ~ danceability + valence 
+                             + duration + acousticness 
+                             + speechiness + artist, data = df_train
+                             , family = binomial(link = 'logit'))
+
+summary(binomial_regression_2)$coefficients[c("danceability"
+                                            , "valence"
+                                            , "duration"
+                                            , "acousticness"
+                                            , "speechiness")
+                                          ,]
+```
+
+This has left our model with a lot more significant predictors -- almost all of them are statistically significant (< .10) now! 
+
+##### Verification
+
+##### Train Dataset
+
+Let's see how this model performs for the training set. 
+
+```{r performance-training}
+df_train$prediction <- predict(binomial_regression, type = 'response', newdata = df_train)
+ggplot(df_train, aes(x = prediction, color = popularity_b == 1)) + geom_density()
+```
+
+```{r verification-training}
+df_train$prediction_class <- df_train$prediction > 0.5
+tab <- table(df_train$prediction_class, 
+             df_train$popularity_b) |> prop.table() |> print()
+```
+
+The accuracy for the training set is 20.43% + 70.18% = 90.61%. Given the simplest prediction which is just to guess every song is popular was at a 74% accuracy, this model is much better. 
+
+What about for the second model we have?
+
+```{r performance-training-2}
+df_train$prediction <- predict(binomial_regression_2, type = 'response', newdata = df_train)
+ggplot(df_train, aes(x = prediction, color = popularity_b == 1)) + geom_density()
+```
+
+```{r verification-training-2}
+df_train$prediction_class <- df_train$prediction > 0.5
+tab <- table(df_train$prediction_class, 
+             df_train$popularity_b) |> prop.table() |> print()
+```
+The accuracy here is 20.57% + 70.18% = 90.75% -- slightly better than the first model! This seems to do a better job at predicting those that aren't popular. 
+
+##### Test Dataset
+
+Now let's see how this model does with the test dataset.
+
+```{r performance-test}
+df_test_new <- df_test
+df_test_new$artist[which(!(df_test_new$artist %in% unique(df_train$artist)))] <- NA  # for cases where the artist exists in the test data but not in the training set, we have to replace them with NA
+
+df_test$prediction <- predict(binomial_regression, newdata = df_test_new, type = 'response')
+ggplot(df_test, aes(x = prediction, color = popularity_b == 1)) + geom_density()
+```
+
+This chart looks a little less accurate than the training one did upon first glance.
+
+```{r verification-test}
+popularity_prediction_test <- table(df_test$popularity_b) |> prop.table()
+popularity_prediction_test
+```
+
+Here, we can see that we would be correct 72.95% of the time if we just guessed a song was popular.
+
+```{r test}
+df_test$prediction_class <- df_test$prediction > 0.5
+tab_test <- table(df_test$prediction_class, df_test$popularity_b) %>%
+    prop.table() %>% print()
+```
+
+12.22% + 66.29% = 78.51% -- this model is ~5.5% more accurate than just guessing. Given there are NAs for this situation, it makes sense that the accuracy is lower than when compared to the training set's performance.
+
+How does the second model we created look?
+
+```{r performance-test-2}
+df_test$prediction <- predict(binomial_regression_2, newdata = df_test_new, type = 'response')
+ggplot(df_test, aes(x = prediction, color = popularity_b == 1)) + geom_density()
+```
+
+```{r test-2}
+df_test$prediction_class <- df_test$prediction > 0.5
+tab_test <- table(df_test$prediction_class, df_test$popularity_b) %>%
+    prop.table() %>% print()
+```
+11.76% + 65.16% = 76.92% -- this model does a little worse for our test dataset it seems, but still better than just guessing "yes" for everything.
+
+### Part 5 - Conclusion
+
+Overall, the process to find whether there is a relationship between the various variables and popularity was made possible with a binomial regression. While only two fields were statistically significant in the first model (there may have been a few `artist` values that were also statistically significant, however looking at each one would take much more time) and the second model with removing of the less statistically significant variables did a little worse than the first for performance, but both models were still better than just blind guessing. 
+
+While there seems to be correlation between popularity and several of these variables, the only slight improvement the model gives seems to indicate that trying to engineer a "popular" song may not be possible with these metrics; I would only really rely on this to predict whether a song is popular, and even with that, it's not *that* much of an improvement overall.
+
+Future iterations of this project could be to:
+
+- Test different model types
+- Try to predict `popularity` as a score rather than a boolean (attempted in Appendix A)
+- Try to incorporate more fields (genre) or remove more
+- Adjust some of the fields (log) to get them into a more normal distribution before adding them to the model
+
+### References
+
+https://www.kaggle.com/datasets/iamsumat/spotify-top-2000s-mega-dataset
+
+### Appendix
+
+#### Predicting Popularity as a Number Instead Without Categorical Variables
+
+Let's see what the model looks like with all of the variables.
+
+```{r lm}
+regression <- lm(popularity ~ bpm + energy +
+               danceability + loudness + valence + 
+                 duration + acousticness + speechiness,
+             data = df_train)
+
+summary(regression)
+```
+
+Interestingly, it seems like a lot of these variables are statistically significant predictors (`energy`, `dancebaility`, `loudness`, `valence`, `acousticness`, `speechiness`).
+
+The Adjusted r-squared is only 0.06483 though, signalling that this isn't a very strong model.
